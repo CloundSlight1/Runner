@@ -186,25 +186,56 @@ public class StepProvider extends ContentProvider {
         public static final String TABLE = "step";
 
         public static final String KEY_ID = "_id";
-        public static final String KEY_DAY_TIME = "dayTime";
-        public static final String KEY_START_TIME = "startTime";
-        public static final String KEY_END_TIME = "endTime";
+        public static final String KEY_TIME = "time";
         public static final String KEY_STEP = "step";
+        public static final String KEY_START_TIME = "starTtime";
         public static final String KEY_START_STEP = "startStep";
 
         public static final String[] COLUMNS = new String[]{
                 StepProvider.Step.KEY_ID,
-                StepProvider.Step.KEY_DAY_TIME,
-                StepProvider.Step.KEY_START_TIME,
-                StepProvider.Step.KEY_END_TIME,
+                StepProvider.Step.KEY_TIME,
                 StepProvider.Step.KEY_STEP,
+                StepProvider.Step.KEY_START_TIME,
                 StepProvider.Step.KEY_START_STEP,
         };
+
+        public static StepInfo getTodayData(Context context, long time) {
+            long todayTime = Utils.getDayZeroTime(time);
+            try (Cursor cursor = context.getContentResolver().query(StepProvider.Step.CONTENT_URL,
+                    COLUMNS,
+                    Step.KEY_START_TIME + "=?",
+                    new String[]{String.valueOf(todayTime)}, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    return new StepInfo(cursor.getLong(0), cursor.getLong(1), cursor.getInt(2),
+                            cursor.getLong(3), cursor.getInt(4));
+                }
+                return null;
+            }
+        }
+
+        public static void saveStep(Context context, int step, long time) {
+            Log2.d(TAG, "saveStep %d %d", time, step);
+            StepInfo stepInfo = getTodayData(context, time);
+            if (stepInfo == null) {
+                ContentValues values = new ContentValues(2);
+                values.put(Step.KEY_TIME, time);
+                values.put(Step.KEY_STEP, step);
+                values.put(Step.KEY_START_TIME, Utils.getDayZeroTime(time));
+                values.put(Step.KEY_START_STEP, step);
+                context.getContentResolver().insert(StepProvider.Step.CONTENT_URL, values);
+            } else {
+                ContentValues values = new ContentValues(2);
+                values.put(StepProvider.Step.KEY_TIME, time);
+                values.put(StepProvider.Step.KEY_STEP, step);
+                context.getContentResolver().update(StepProvider.Step.CONTENT_URL, values,
+                        KEY_ID + "=" + stepInfo.getId(), null);
+            }
+        }
     }
 
     public class DatabaseHelper extends SQLiteOpenHelper {
         private static final String DATABASE = "step.db";
-        private static final int VERSION = 2;
+        private static final int VERSION = 3;
 
         public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
             super(context, name, factory, version);
@@ -212,9 +243,9 @@ public class StepProvider extends ContentProvider {
 
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(String.format("create table if not exists %s(%s integer primary key autoincrement, " +
-                    "%s integer, %s integer default 0, %s integer, %s integer, %s integer);",
-                    Step.TABLE, Step.KEY_ID, Step.KEY_DAY_TIME, Step.KEY_START_TIME,
-                    Step.KEY_END_TIME, Step.KEY_STEP, Step.KEY_START_STEP));
+                            "%s integer default 0, %s integer default 0, %s integer default 0, %s integer default 0);",
+                    Step.TABLE, Step.KEY_ID,
+                    Step.KEY_TIME, Step.KEY_STEP, Step.KEY_START_TIME, Step.KEY_START_STEP));
         }
 
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {

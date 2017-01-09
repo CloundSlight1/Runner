@@ -21,6 +21,12 @@
         <provider
             android:authorities="com.wuyz.runner.StepProvider"
             android:name=".StepProvider"/>
+
+        <receiver android:name=".MyReceiver">
+            <intent-filter>
+                <action android:name="com.wuyz.runner.action.STEP_COUNTER"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

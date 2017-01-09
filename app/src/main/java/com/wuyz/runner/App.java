@@ -22,6 +22,8 @@ public class App extends android.app.Application {
     private static final String TAG = "App";
     private static App instance;
 
+    private boolean isRegistered = false;
+
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -63,7 +65,7 @@ public class App extends android.app.Application {
                 PrintWriter writer = null;
                 try {
                     writer = new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
-                    writer.println(StringUtils.dateFormat.format(new Date()));
+                    writer.println(Utils.dateFormat.format(new Date()));
                     e.printStackTrace(writer);
                     Throwable throwable = e.getCause();
                     while (throwable != null) {
@@ -86,5 +88,13 @@ public class App extends android.app.Application {
 
     public static App getInstance() {
         return instance;
+    }
+
+    public boolean isRegistered() {
+        return isRegistered;
+    }
+
+    public void setRegistered(boolean registered) {
+        isRegistered = registered;
     }
 }

@@ -1,9 +1,11 @@
 package com.wuyz.runner;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.LoaderManager;
-import android.content.ContentValues;
+import android.app.PendingIntent;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -17,18 +19,14 @@ import android.widget.CompoundButton;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.Switch;
-
-import java.util.Calendar;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements SensorEventListener, LoaderManager.LoaderCallbacks<Cursor> {
-
     private static final String TAG = "MainActivity";
 
     private SensorManager sensorManager;
-    private Switch statusSwitch;
     private int curStep = 0;
     private CursorAdapter adapter;
-    private ListView listView;
     private SharedPreferences preferences;
 
     @Override
@@ -39,7 +37,7 @@ public class MainActivity extends Activity implements SensorEventListener, Loade
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        statusSwitch = (Switch) findViewById(R.id.status_view);
+        Switch statusSwitch = (Switch) findViewById(R.id.status_view);
         statusSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -55,10 +53,18 @@ public class MainActivity extends Activity implements SensorEventListener, Loade
             statusSwitch.setChecked(true);
 
         adapter = new StepAdapter(this, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
-        listView = (ListView) findViewById(R.id.list1);
+        ListView listView = (ListView) findViewById(R.id.list1);
         listView.setAdapter(adapter);
 
         getLoaderManager().initLoader(0, null, this);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
+                new Intent(MyReceiver.ACTION_STEP_COUNTER), PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarmManager.cancel(pendingIntent);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
+                Utils.getDayZeroTime(System.currentTimeMillis()) + 3600000,
+                Utils.DAY_SECONDS, pendingIntent);
     }
 
     @Override
@@ -67,26 +73,27 @@ public class MainActivity extends Activity implements SensorEventListener, Loade
         super.onDestroy();
     }
 
-    @Override
-    public void onBackPressed() {
-        if (statusSwitch.isChecked()) {
-            moveTaskToBack(false);
-            return;
-        }
-        super.onBackPressed();
-    }
-
-    private void registerSensor() {
-        sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER),
+    private boolean registerSensor() {
+        Log2.d(TAG, "registerSensor");
+        boolean ret = sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER),
                 SensorManager.SENSOR_DELAY_NORMAL);
+        Log2.d(TAG, "registerSensor %b", ret);
+        App.getInstance().setRegistered(ret);
+        if (!ret)
+            Toast.makeText(this, "can't find step counter sensor", Toast.LENGTH_SHORT).show();
+        return ret;
     }
 
     private void unregisterSensor() {
+        Log2.d(TAG, "unregisterSensor");
         try {
-            sensorManager.unregisterListener(this);
+            if (App.getInstance().isRegistered()) {
+                sensorManager.unregisterListener(this);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        App.getInstance().setRegistered(false);
     }
 
     @Override
@@ -99,7 +106,7 @@ public class MainActivity extends Activity implements SensorEventListener, Loade
             ThreadExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    saveStep(step, time);
+                    StepProvider.Step.saveStep(App.getInstance(), step, time);
                 }
             });
         }
@@ -110,49 +117,10 @@ public class MainActivity extends Activity implements SensorEventListener, Loade
 
     }
 
-    private static long getDayZeroTime(long time) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(time);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTimeInMillis();
-    }
-
-    private void saveStep(int step, long time) {
-        Log2.d(TAG, "saveStep %d %d", time, step);
-        long dayTime = getDayZeroTime(time);
-        try (Cursor cursor = getContentResolver().query(StepProvider.Step.CONTENT_URL,
-                new String[]{StepProvider.Step.KEY_ID, StepProvider.Step.KEY_START_STEP},
-                StepProvider.Step.KEY_DAY_TIME + "=?",
-                new String[]{String.valueOf(dayTime)}, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                long id = cursor.getLong(0);
-                int startStep = cursor.getInt(1);
-                cursor.close();
-
-                ContentValues values = new ContentValues(2);
-                values.put(StepProvider.Step.KEY_END_TIME, time);
-                values.put(StepProvider.Step.KEY_STEP, step - startStep);
-                getContentResolver().update(StepProvider.Step.CONTENT_URL, values,
-                        StepProvider.Step.KEY_ID + "=" + id, null);
-            } else {
-                ContentValues values = new ContentValues(4);
-                values.put(StepProvider.Step.KEY_DAY_TIME, dayTime);
-                values.put(StepProvider.Step.KEY_START_TIME, time);
-                values.put(StepProvider.Step.KEY_END_TIME, time);
-                values.put(StepProvider.Step.KEY_STEP, 1);
-                values.put(StepProvider.Step.KEY_START_STEP, step);
-                getContentResolver().insert(StepProvider.Step.CONTENT_URL, values);
-            }
-        }
-    }
-
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(this, StepProvider.Step.CONTENT_URL, StepProvider.Step.COLUMNS, null, null,
-                StepProvider.Step.KEY_DAY_TIME + " desc");
+                StepProvider.Step.KEY_START_TIME + " desc");
     }
 
     @Override

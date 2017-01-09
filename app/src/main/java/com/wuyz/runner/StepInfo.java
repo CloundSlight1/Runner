@@ -7,24 +7,42 @@ package com.wuyz.runner;
 
 public class StepInfo {
 
-    private long dayTime;
-    private long startTime;
-    private long endTime;
+    private long id;
+    private long time;
     private int step;
+    private long startTime;
+    private int startStep;
 
-    public StepInfo(long dayTime, long startTime, long endTime, int step) {
-        this.dayTime = dayTime;
-        this.startTime = startTime;
-        this.endTime = endTime;
+    public StepInfo(long id, long time, int step, long startTime, int startStep) {
+        this.id = id;
+        this.time = time;
         this.step = step;
+        this.startTime = startTime;
+        this.startStep = startStep;
     }
 
-    public long getDayTime() {
-        return dayTime;
+    public long getId() {
+        return id;
     }
 
-    public void setDayTime(long dayTime) {
-        this.dayTime = dayTime;
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    public int getStep() {
+        return step;
+    }
+
+    public void setStep(int step) {
+        this.step = step;
     }
 
     public long getStartTime() {
@@ -35,19 +53,11 @@ public class StepInfo {
         this.startTime = startTime;
     }
 
-    public long getEndTime() {
-        return endTime;
+    public int getStartStep() {
+        return startStep;
     }
 
-    public void setEndTime(long endTime) {
-        this.endTime = endTime;
-    }
-
-    public int getStep() {
-        return step;
-    }
-
-    public void setStep(int step) {
-        this.step = step;
+    public void setStartStep(int startStep) {
+        this.startStep = startStep;
     }
 }

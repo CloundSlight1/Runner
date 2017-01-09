@@ -85,7 +85,7 @@ public class Log2 {
         if (level == null || msg == null || msg.isEmpty())
             return;
 		try {
-            stringBuilder.append(StringUtils.dateFormat4.format(new Date())).append(' ').append(level).append(' ')
+            stringBuilder.append(Utils.dateFormat4.format(new Date())).append(' ').append(level).append(' ')
                     .append(msg).append('\n');
         } catch (Exception e){
             e.printStackTrace();
@@ -107,7 +107,7 @@ public class Log2 {
             return;
         }
 
-        File file = new File(path, StringUtils.dateFormat2.format(new Date()) + ".txt");
+        File file = new File(path, Utils.dateFormat2.format(new Date()) + ".txt");
         FileOutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(file, true);
