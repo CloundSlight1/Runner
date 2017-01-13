@@ -60,17 +60,26 @@ public class MainActivity extends Activity implements SensorEventListener, Loade
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0,
                 new Intent(MyReceiver.ACTION_STEP_COUNTER), PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent2 = PendingIntent.getBroadcast(this, 0,
+                new Intent(MyReceiver.ACTION_STEP_COUNTER2), PendingIntent.FLAG_UPDATE_CURRENT);
+
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.cancel(pendingIntent);
+        alarmManager.cancel(pendingIntent2);
+
         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
-                Utils.getDayZeroTime(System.currentTimeMillis()) + 3600000,
+                Utils.getDayZeroTime(System.currentTimeMillis()) + Utils.DAY_SECONDS + Utils.HOUR_SECONDS / 2,
                 Utils.DAY_SECONDS, pendingIntent);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
+                Utils.getDayZeroTime(System.currentTimeMillis()) + Utils.HOUR_SECONDS * 23 +  + Utils.HOUR_SECONDS / 2,
+                Utils.DAY_SECONDS, pendingIntent2);
     }
 
     @Override
     protected void onDestroy() {
         unregisterSensor();
         super.onDestroy();
+        Log2.flush();
     }
 
     private boolean registerSensor() {

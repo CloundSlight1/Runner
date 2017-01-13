@@ -22,7 +22,8 @@ public class Utils {
     public static final SimpleDateFormat dateFormat4 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault());
     public static final SimpleDateFormat dateFormat5 = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-    public static final long DAY_SECONDS = 24L * 3600L * 1000L;
+    public static final long HOUR_SECONDS = 3600L * 1000L;
+    public static final long DAY_SECONDS = 24L * HOUR_SECONDS;
 
     public static long getDayZeroTime(long time) {
         Calendar calendar = Calendar.getInstance();

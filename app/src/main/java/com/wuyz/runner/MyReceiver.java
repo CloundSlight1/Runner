@@ -19,6 +19,7 @@ import static android.content.Context.SENSOR_SERVICE;
 public class MyReceiver extends BroadcastReceiver implements SensorEventListener {
     private static final String TAG = "MyReceiver";
     public static final String ACTION_STEP_COUNTER = "com.wuyz.runner.action.STEP_COUNTER";
+    public static final String ACTION_STEP_COUNTER2 = "com.wuyz.runner.action.STEP_COUNTER2";
 
     private static int curStep = 0;
 
@@ -26,8 +27,6 @@ public class MyReceiver extends BroadcastReceiver implements SensorEventListener
     public void onReceive(Context context, Intent intent) {
         boolean registered = App.getInstance().isRegistered();
         Log2.d(TAG, "onReceive isRegistered[%b]", registered);
-        if (registered)
-            return;
         registerSensor();
     }
 
