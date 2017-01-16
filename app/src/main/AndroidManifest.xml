@@ -25,7 +25,6 @@
         <receiver android:name=".MyReceiver">
             <intent-filter>
                 <action android:name="com.wuyz.runner.action.STEP_COUNTER"/>
-                <action android:name="com.wuyz.runner.action.STEP_COUNTER2"/>
             </intent-filter>
         </receiver>
     </application>

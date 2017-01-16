@@ -14,15 +14,12 @@ import java.util.Date;
 
 /**
  * Created by wuyz on 2016/10/8.
- *
  */
 
 public class App extends android.app.Application {
 
     private static final String TAG = "App";
     private static App instance;
-
-    private boolean isRegistered = false;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -44,6 +41,14 @@ public class App extends android.app.Application {
         if (Log2.ENABLE)
             registerReceiver(receiver, new IntentFilter(Log2.ACTION_FLUSH_LOG));
         ThreadExecutor.initExecutorService();
+
+        ThreadExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                StepProvider.Step.deleteBeforeTime(App.this, System.currentTimeMillis() - 30 * Utils.DAY_SECONDS);
+                StepProvider.Step.deleteAfterTime(App.this, System.currentTimeMillis() + Utils.DAY_SECONDS);
+            }
+        });
     }
 
     private void initExceptionHandler() {
@@ -88,13 +93,5 @@ public class App extends android.app.Application {
 
     public static App getInstance() {
         return instance;
-    }
-
-    public boolean isRegistered() {
-        return isRegistered;
-    }
-
-    public void setRegistered(boolean registered) {
-        isRegistered = registered;
     }
 }

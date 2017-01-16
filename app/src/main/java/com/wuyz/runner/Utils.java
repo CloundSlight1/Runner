@@ -1,11 +1,12 @@
 package com.wuyz.runner;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -35,4 +36,23 @@ public class Utils {
         return calendar.getTimeInMillis();
     }
 
+    public static String getDateDesc(long time) {
+        long todayTime = Utils.getDayZeroTime(System.currentTimeMillis());
+
+        if (time >= todayTime && time < todayTime + Utils.DAY_SECONDS)
+            return "今天";
+
+        if (time < todayTime && time >= todayTime - Utils.DAY_SECONDS)
+            return "昨天";
+
+        if (time < todayTime - Utils.DAY_SECONDS && time >= todayTime - Utils.DAY_SECONDS * 2)
+            return "前天";
+
+        return dateFormat2.format(time);
+    }
+
+    public static long getTime(long nanoTime) {
+        long delta = System.nanoTime() - nanoTime;
+        return System.currentTimeMillis() - delta / 1000000L;
+    }
 }

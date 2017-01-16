@@ -19,14 +19,10 @@ import static android.content.Context.SENSOR_SERVICE;
 public class MyReceiver extends BroadcastReceiver implements SensorEventListener {
     private static final String TAG = "MyReceiver";
     public static final String ACTION_STEP_COUNTER = "com.wuyz.runner.action.STEP_COUNTER";
-    public static final String ACTION_STEP_COUNTER2 = "com.wuyz.runner.action.STEP_COUNTER2";
-
-    private static int curStep = 0;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        boolean registered = App.getInstance().isRegistered();
-        Log2.d(TAG, "onReceive isRegistered[%b]", registered);
+        Log2.d(TAG, "onReceive %s", intent.getAction());
         registerSensor();
     }
 
@@ -36,7 +32,6 @@ public class MyReceiver extends BroadcastReceiver implements SensorEventListener
             boolean ret = sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER),
                     SensorManager.SENSOR_DELAY_NORMAL);
             Log2.d(TAG, "registerSensor %b", ret);
-            App.getInstance().setRegistered(ret);
             if (!ret)
                 Toast.makeText(App.getInstance(), "can't find step counter sensor", Toast.LENGTH_SHORT).show();
             return ret;
@@ -53,24 +48,21 @@ public class MyReceiver extends BroadcastReceiver implements SensorEventListener
         } catch (Exception e) {
             e.printStackTrace();
         }
-        App.getInstance().setRegistered(false);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
         final int step = (int) event.values[0];
-        Log2.d(TAG, "onSensorChanged %d", step);
-        if (curStep != step) {
-            curStep = step;
-            final long time = System.currentTimeMillis();
-            ThreadExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    StepProvider.Step.saveStep(App.getInstance(), step, time);
-                    unregisterSensor();
-                }
-            });
-        }
+//        final long time = Utils.getTime(event.timestamp);
+        final long time = System.currentTimeMillis();
+        Log2.d(TAG, "onSensorChanged %d %d", step, event.timestamp);
+        ThreadExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                StepProvider.Step.saveStep(App.getInstance(), step, time);
+                unregisterSensor();
+            }
+        });
     }
 
     @Override
