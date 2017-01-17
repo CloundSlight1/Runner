@@ -240,7 +240,7 @@ public class StepProvider extends ContentProvider {
                     long[] ids = new long[n];
                     int i = 0;
                     while (cursor.moveToNext()) {
-                        if (i > 1 && i < n) {
+                        if (i > 0 && i < n - 1) {
                             ids[i] = cursor.getLong(INDEX_ID);
                             Log2.d(TAG, "delete data at %s", Utils.dateFormat.format(cursor.getLong(INDEX_TIME)));
                         } else {
