@@ -33,6 +33,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     private SharedPreferences preferences;
     private AlarmManager alarmManager;
     private PendingIntent saveStepAlarmIntent;
+    private int lastStep = -1;
 
     private Handler handler = new Handler() {
         @Override
@@ -145,11 +146,14 @@ public class MainActivity extends Activity implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         final int step = (int) sensorEvent.values[0];
+        if (lastStep == step)
+            return;
+        lastStep = step;
 //        long time = Utils.getTime(sensorEvent.timestamp);
         long time = System.currentTimeMillis();
 //        Log2.d(TAG, "onSensorChanged %d %d", step, sensorEvent.timestamp);
-        handler.removeMessages(MSG_SAVE_STEP);
-        handler.sendMessageDelayed(handler.obtainMessage(MSG_SAVE_STEP, step, 0, time), 1000);
+//        handler.removeMessages(MSG_SAVE_STEP);
+        handler.sendMessage(handler.obtainMessage(MSG_SAVE_STEP, step, 0, time));
     }
 
     @Override

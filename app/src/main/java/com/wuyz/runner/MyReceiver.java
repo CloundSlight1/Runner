@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.PowerManager;
 import android.widget.Toast;
 
 import static android.content.Context.SENSOR_SERVICE;
@@ -23,6 +24,7 @@ public class MyReceiver extends BroadcastReceiver implements SensorEventListener
     @Override
     public void onReceive(Context context, Intent intent) {
         Log2.d(TAG, "onReceive %s", intent.getAction());
+        getWakeLock(context);
         registerSensor();
     }
 
@@ -68,5 +70,11 @@ public class MyReceiver extends BroadcastReceiver implements SensorEventListener
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+
+    private void getWakeLock(Context context) {
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        wakeLock.acquire(5000);
     }
 }

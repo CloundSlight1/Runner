@@ -22,6 +22,7 @@ public class Utils {
     public static final SimpleDateFormat dateFormat3 = new SimpleDateFormat("yyyyMMdd", Locale.getDefault());
     public static final SimpleDateFormat dateFormat4 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault());
     public static final SimpleDateFormat dateFormat5 = new SimpleDateFormat("HH:mm", Locale.getDefault());
+    public static final SimpleDateFormat dateFormat6 = new SimpleDateFormat("MM-dd", Locale.getDefault());
 
     public static final long HOUR_SECONDS = 3600L * 1000L;
     public static final long DAY_SECONDS = 24L * HOUR_SECONDS;
@@ -48,7 +49,7 @@ public class Utils {
         if (time < todayTime - Utils.DAY_SECONDS && time >= todayTime - Utils.DAY_SECONDS * 2)
             return "前天";
 
-        return dateFormat2.format(time);
+        return dateFormat6.format(time);
     }
 
     public static long getTime(long nanoTime) {
